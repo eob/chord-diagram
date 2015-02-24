@@ -1,5 +1,6 @@
 
 function chordDiagramWidget_getRowLabels(treeName) {
+  console.log(treeName);
   return CTS(treeName + '|Data!A:A').getValue().slice(1);
 }
 
@@ -10,13 +11,17 @@ function chordDiagramWidget_getColLabels(treeName) {
 function chordDiagramWidget_getCellValue(treeName, row, col) {
   var r = row + 1;
   var c = col + 1;
-  return CTS(treeName + '|' + 'Data!r' + row + 'c' + col).getValue();
+
+  var s = treeName + '|' + 'Data!r' + row + 'c' + col;
+  var val = CTS(s).getValue();
+  return val;
+
 }
 
 function chordDiagramWidget_Init(elem, treeName) {
   // Load data
   if (typeof tree == 'undefined') {
-    treeName = 'chordDiagramWidget_Data';
+    treeName = 'chordDiagramDatasource';
   }
   if (CTS && CTS.engine && CTS.engine.forrest) {
     try {
@@ -50,6 +55,7 @@ var chordDiagramWidget_Data = function(treeName) {
   var cols = chordDiagramWidget_getColLabels(treeName);
   var labels = [];
   var matrix = [];
+  var i = 0, j=0;
 
   // Load the labels
   for (var i = 0; i < rows.length; i++) {
@@ -58,27 +64,53 @@ var chordDiagramWidget_Data = function(treeName) {
   for (var i = 0; i < cols.length; i++) {
     labels.push(cols[i]);
   }
+  // Load the source data
 
-  for (var row = 0; row < (rows.length + cols.length); row++) {
+  i = 0;
+  j = 0;
+  var srcMatrix = [];
+
+  for (i = 2; i < rows.length + 2; i++) {
+    var row = [];    
+    for (j = 2; j < cols.length + 2; j++) {
+      var query = treeName + '|' + 'Data!r' + i + 'c' + j;
+      var val = CTS(query).getValue();
+      if (isNaN(val)) {
+        val = 0;
+      }
+      val = parseFloat(val);
+      if (isNaN(val)) {
+        val = 0;
+      }
+      row.push(val);
+    }
+    srcMatrix.push(row);
+  }  
+
+  var numRows = srcMatrix.length;
+  var numCols = cols.length;
+  var totalLength = numRows + numCols;
+
+  for (var row = 0; row < totalLength; row++) {
     var matrixRow = [];
-    for (var col = 0; col < (rows.length + cols.length); col++) {
+    for (var col = 0; col < totalLength; col++) {
       var value;
-      if (col < rows.length) {
+      if (col < numRows) {
         // Left Half
-        if (row < rows.length) {
+        if (row < numRows) {
           // Top Left
           value = 0;
         } else {
           // Bottom Left
           var fixedRow = col;
-          var fixedCol = row - rows.length;
-          value = chordDiagramWidget_getCellValue(treeName, fixedRow, fixedCol);
+          var fixedCol = row - numRows;
+          value = srcMatrix[fixedRow][fixedCol];
         }
       } else {
-        if (row < rows.length) {
+        if (row < numRows) {
           // Top right
-          var fixedCol = col - rows.length;
-          value = chordDiagramWidget_getCellValue(treeName, row, fixedCol);
+          var fixedCol = col - numRows;
+          value = srcMatrix[row][fixedCol];
         } else {
           // Bottom right
           value = 0;
@@ -88,11 +120,16 @@ var chordDiagramWidget_Data = function(treeName) {
     }
     matrix.push(matrixRow);
   }
+  return {
+    labels: labels,
+    matrix: matrix
+  }
 };
 
-function chordDiagramWidget_Draw(elem, data, settings) {
+function chordDiagramWidget_Draw(elem, data, Settings) {
   var fill = d3.scale.category10();
 
+  console.log(data);
   // Visualize
   var chord = d3.layout.chord()
       .padding(.05)
@@ -117,7 +154,7 @@ function chordDiagramWidget_Draw(elem, data, settings) {
       .enter().append("path")
       .attr("class", "arc")
       .style("fill", function(d) {
-          return d.index < 4 ? '#444444' : fill(d.index);
+        return d.index < 4 ? '#444444' : fill(d.index);
       })
       .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
       .on("mouseover", fade(.1))
@@ -129,7 +166,9 @@ function chordDiagramWidget_Draw(elem, data, settings) {
       .data(chord.chords)
       .enter().append("path")
       .attr("d", d3.svg.chord().radius(innerRadius))
-      .style("fill", function(d) { return fill(d.target.index); })
+      .style("fill", function(d) {         
+        return fill(d.source.index); 
+      })
       .style("opacity", 0.7);
 
   svg.append("g").selectAll(".arc")
