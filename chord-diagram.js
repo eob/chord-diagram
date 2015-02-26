@@ -41,6 +41,7 @@ var chordDiagramWidget_Settings = function(elem, treeName) {
     settings.Width = elem.width();
     settings.Height = elem.height();
   }
+  settings.Padding = parseInt(settings.Padding);
   return settings;
 }
 
