@@ -34,12 +34,14 @@ function chordDiagramWidget_Init(elem, treeName) {
   }
 }
 
-var chordDiagramWidget_Settings = function(treeName) {
-  return {
-    Width: 960,
-    Height: 500,
-    Padding: 200
+var chordDiagramWidget_Settings = function(elem, treeName) {
+  var settings = CTS(treeName + "|Settings!rows").nodes[0].toJson()[0];
+  
+  if (settings.Size == 'auto') {
+    settings.Width = elem.width();
+    settings.Height = elem.height();
   }
+  return settings;
 }
 
 /* Turn Matrix
