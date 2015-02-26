@@ -26,7 +26,7 @@ function chordDiagramWidget_Init(elem, treeName) {
   if (CTS && CTS.engine && CTS.engine.forrest) {
     try {
       var data = chordDiagramWidget_Data(treeName);
-      var settings = chordDiagramWidget_Settings(treeName);
+      var settings = chordDiagramWidget_Settings(elem, treeName);
       chordDiagramWidget_Draw(elem[0], data, settings);
     } catch(e) {
       console.log(e);
@@ -36,7 +36,7 @@ function chordDiagramWidget_Init(elem, treeName) {
 
 var chordDiagramWidget_Settings = function(elem, treeName) {
   var settings = CTS(treeName + "|Settings!rows").nodes[0].toJson()[0];
-  
+
   if (settings.Size == 'auto') {
     settings.Width = elem.width();
     settings.Height = elem.height();
