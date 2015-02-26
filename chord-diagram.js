@@ -41,7 +41,8 @@ var chordDiagramWidget_Settings = function(elem, treeName) {
     settings.Width = elem.width();
     settings.Height = elem.height();
   }
-  settings.Padding = parseInt(settings.Padding);
+  settings.PaddingTopBottom = parseInt(settings.PaddingTopBottom);
+  settings.PaddingLeftRight = parseInt(settings.PaddingLeftRight);
   return settings;
 }
 
@@ -147,10 +148,10 @@ function chordDiagramWidget_Draw(elem, data, Settings) {
       outer
 
   var svg = d3.select(elem).append("svg")
-      .attr("width", width+Settings.Padding)
-      .attr("height", height+Settings.Padding)
+      .attr("width", width+Settings.PaddingLeftRight)
+      .attr("height", height+Settings.PaddingTopBottom)
       .append("g")
-      .attr("transform", "translate(" + (width+Settings.Padding) / 2 + "," + (height+Settings.Padding) / 2 + ")");
+      .attr("transform", "translate(" + (width+Settings.PaddingLeftRight) / 2 + "," + (height+Settings.PaddingTopBottom) / 2 + ")");
 
   svg.append("g").selectAll("path")
       .data(chord.groups)
